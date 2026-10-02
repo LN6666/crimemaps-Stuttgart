@@ -1,5 +1,5 @@
 import {t} from "../src/safety/i18n";
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./fixture";
 import type { Bundle, FC, PoliceEvent, SceneLocation } from "../src/safety/model";
 import {
   countableEventIds,
@@ -26,7 +26,7 @@ function report(id: string, changes: Partial<PoliceEvent> = {}): PoliceEvent {
   return {
     id,
     title: id,
-    category: "Gewalt",
+    category: "gewalt",
     month: "2026-09",
     event_date: null,
     coordinates: null,
@@ -242,7 +242,7 @@ test("native water footprint is context, not an actual boat trajectory or count"
 const rows = [
   sharedReport,
   report("B", {
-    category: "Raub",
+    category: "raub",
     scene_locations: [{
       label: "抓捕地点",
       role: "arrest",
@@ -292,7 +292,7 @@ test("scene source retains every visible role and geometry under the month and c
     "A/0", "A/1", "A/2", "A/2", "A/3", "B/0",
   ]);
   expect(sceneEventIds(features)).toEqual(["A", "B"]);
-  expect(sceneFeatures(monthEvents(data, "2026-09", "Raub")).features)
+  expect(sceneFeatures(monthEvents(data, "2026-09", "raub")).features)
     .toHaveLength(1);
   expect(sceneFeatures(monthEvents(data, "2026-08", "all")).features)
     .toHaveLength(1);
@@ -545,7 +545,7 @@ test("clicking overlapping scene shapes opens one report card with every scene",
     }),
     report("other", {
       title: "其他类别公告",
-      category: "Raub",
+      category: "raub",
       scene_locations: [{
         label: "抓捕处", role: "arrest", location_precision: "point",
         geocode_method: "address", coordinates: [13.42, 52.52],
@@ -568,7 +568,7 @@ test("clicking overlapping scene shapes opens one report card with every scene",
       retrieved_at: "2026-09-27T12:00:00Z",
       coverage: { discovered: 2, fetched: 2, pending: 0, failed: 0 },
       months: { "2026-09": { count: 2 } },
-      categories: ["Gewalt", "Raub"],
+      categories: ["gewalt", "raub"],
       tile_index: { pois: [], roads: [] }, tile_size: [0.04, 0.025],
       catalog: { poi_types: {}, sources: [], coverage: [], exhaustive: false },
       zones: { places: [], features: [], geometry_status: "pending" },
@@ -581,7 +581,7 @@ test("clicking overlapping scene shapes opens one report card with every scene",
     } });
     return route.fulfill({ json: { type: "FeatureCollection", features: [] } });
   });
-  await page.goto("/");
+  await page.goto("/?lang=zh");
   await expect(page.locator("#stats .big")).toHaveText("2");
   const canvas = page.locator(".maplibregl-canvas");
   await expect.poll(async () => {
@@ -591,12 +591,12 @@ test("clicking overlapping scene shapes opens one report card with every scene",
   }).toContain("多地点公告");
   await expect(page.locator("#selection .report")).toHaveCount(1);
   await expect(page.locator("#selection .scene-list li")).toHaveCount(5);
-  await expect(page.locator("#selection")).toContainText("仅道路参考（非完整线路，精确路段未知）");
-  await expect(page.locator("#selection")).toContainText("主场景");
-  await expect(page.locator("#selection")).toContainText("同一公告最多计一次");
-  await page.locator("#category").selectOption("Raub");
+  await expect(page.locator("#selection")).toContainText("仅作道路参照，不是完整线路；精确路段未知");
+  await expect(page.locator("#selection")).toContainText("用于公告统计的代表地点");
+  await expect(page.locator("#selection")).toContainText("每篇公告最多计一次");
+  await page.locator("#category").selectOption("raub");
   await expect(page.locator("#selection")).not.toContainText("多地点公告");
-  await expect(page.locator("#stats")).toContainText("可计入网格 0 条 · 无计数主点 1 条");
+  await expect(page.locator("#stats")).toContainText("0条可计入六边形；1条没有可用于统计的代表地点");
   await page.locator("#month").selectOption("08");
   await expect(page.locator("#stats .big")).toHaveText("—");
 });

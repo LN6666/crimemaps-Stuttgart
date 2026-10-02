@@ -112,7 +112,7 @@ Eine laufende Besuchserfassung ist noch nicht angeschlossen. Länderzahlen werde
 
 ## Die 14 Stadtprojekte
 
-Berlin ist der Ausgangspunkt. Die Links führen zu den vorgesehenen Stadt-Repositories. Einige sind noch privat oder werden vorbereitet und sind ohne Zugangsberechtigung möglicherweise nicht erreichbar. Ein Repository-Link bedeutet nicht, dass die neue Karte bereits online ist.
+Berlin ist der Ausgangspunkt. Alle 14 Stadt-Repositories sind öffentlich zugänglich. Die Links öffnen den Quellcode und die Projektseiten. Die neuen Karten sind noch nicht online.
 
 | Stadt | Projektseite |
 | --- | --- |

@@ -4,6 +4,7 @@ import { empty } from "./model";
 export interface Manifest {
   schema_version: 2;
   poi_encoding?: "point-radius-v1";
+  poi_scope_groups?:Record<string,{label_key:string;kinds:string[]}>;
   translations?: Partial<Record<"de"|"en"|"zh",Record<string,string>>>;
   city: string;
   status?: string;
@@ -95,6 +96,7 @@ export class DataClient {
       !/^[a-f0-9]{16}-\d{8}T\d{6}$/.test(manifest.generation)
     )
       throw Error("不支持的数据清单");
+    if(manifest.poi_scope_groups){for(const [group,value] of Object.entries(manifest.poi_scope_groups)){if(!/^[a-z][a-z0-9_]{0,79}$/.test(group)||!value||!/^[a-zA-Z0-9_.]{1,100}$/.test(value.label_key)||!Array.isArray(value.kinds)||value.kinds.length>200||!value.kinds.every(k=>/^[a-z][a-z0-9_]{0,79}$/.test(k)))throw Error("Invalid POI display groups");}}
     this.poiCoordinates = new Set(manifest.tile_index.pois.map((key) => key.split("/")[1]));
     this.base = `${dataRoot}/${manifest.generation}`;
     this.available = {
@@ -106,6 +108,7 @@ export class DataClient {
     key: string,
     signal: AbortSignal,
   ): Promise<MonthData | undefined> {
+    signal.throwIfAborted();
     if (!Object.hasOwn(this.manifest.months, key)) return undefined;
     const cached = this.months.get(key);
     if (cached) return cached;
@@ -128,9 +131,12 @@ export class DataClient {
         ? this.poiCoordinates
         : this.available.roads;
     const coordinates = tileKeys(bounds, this.manifest.tile_size, available);
+    const groups=kind==="pois"?this.manifest.poi_scope_groups:undefined;
+    const selected=new Set(placeKinds);
+    const nativeKinds=groups?[...new Set(placeKinds.flatMap(group=>groups[group]?.kinds??[]))]:placeKinds;
     const keys =
       kind === "pois"
-        ? placeKinds
+        ? nativeKinds
             .flatMap((type) => coordinates.map((c) => `${type}/${c}`))
             .filter((k) => this.available.pois.has(k))
         : coordinates;
@@ -154,6 +160,7 @@ export class DataClient {
         for (const f of fc.features) {
           const id = f.properties?.id;
           if (typeof id !== "string" || !id) throw Error("Missing stable object ID");
+          if(groups){if(typeof f.properties.scope_category!=="string"||!Object.hasOwn(groups,f.properties.scope_category))throw Error("Missing POI display group");if(!selected.has(f.properties.scope_category))continue;}
           // One reviewed object may intersect several tiles; render it once.
           if (!features.has(id)) features.set(id, f);
         }

@@ -80,9 +80,15 @@ export interface SceneLocation {
   transit_route?: TransitRoute;
   poi_contexts?: PoiContext[];
 }
+export interface SourceStage {
+  incident_id:string;details?:string;event_time?:EventTime;category?:string;formal_location_ids?:string[];
+}
 export interface PoliceEvent {
   id: string;
   title: string;
+  published_at?:string;
+  publication_month?:string;
+  time_basis?:string;
   source_status?: string;
   source_scope_verdict?: "in_city" | "mixed" | "uncertain" | "out_of_city";
   category: string;
@@ -97,6 +103,7 @@ export interface PoliceEvent {
   geocode_method?: string;
   other_scene_candidates?: { name: string; sentence_index: number }[];
   scene_locations?: SceneLocation[];
+  incidents?:SourceStage[];
   reported_location_geometry?: Geometry;
   candidate_road_geometry?: LineString | MultiLineString;
   source_url: string;
@@ -120,6 +127,7 @@ export interface Link {
   evidence_quote?: string;
 }
 export interface Month {
+  source_poi_reference_features?:FC;
   event_ids: string[];
   hex: { overview: FC; detail: FC };
   links: Link[];
@@ -475,7 +483,7 @@ export function styledPois(
   return {
     ...data.pois,
     features: data.pois.features
-      .filter((f) => kinds.has(f.properties.kind))
+      .filter((f) => kinds.has(f.properties.scope_category??f.properties.kind))
       .map((f) => {
         const id = f.properties.id,
           n = counts.get(id)?.size ?? 0,
@@ -534,4 +542,17 @@ export function renderPois(fc: FC): FC {
     return { ...feature, properties: { ...p,
       radius_px_z0: radiusPixelsAtZoomZero(feature.geometry.coordinates[1], p.display_radius_m) } };
   }) };
+}
+
+/** Preserve stages that have no displayed scene; they never supply coordinates or counts. */
+export function unplacedStages(event:PoliceEvent):SourceStage[] {
+ const displayed=new Set(event.scene_locations?.flatMap(scene=>scene.incidents?.map(stage=>stage.incident_id)??[])??[]);
+ return (event.incidents??[]).filter(stage=>!displayed.has(stage.incident_id));
+}
+
+export const SOURCE_POI_CLICK_LAYERS=["source-poi-reference-fill","source-poi-reference-line","source-poi-reference-point"];
+/** Display already reviewed native context geometry; never replace it with a display circle. */
+export function sourcePoiReferences(rows:PoliceEvent[],references:FC|undefined):FC {
+ const sources=new Map(rows.map(e=>[String((e as PoliceEvent&{source_id?:string}).source_id??e.id.split(":").at(-1)),e.id]));
+ return {type:"FeatureCollection",features:(references?.features??[]).flatMap(f=>{const id=sources.get(String(f.properties.source_id));if(!id)return [];if(f.properties.context_only!==true||f.properties.counts_as_crime_point!==false||f.properties.event_count_point!==false||f.properties.association_radius_m!==0||!validGeometry(f.geometry))throw Error("Invalid reviewed source POI reference");return [{...f,properties:{...f.properties,id,source_reference_id:f.id??f.properties.native_object_id}}];})};
 }

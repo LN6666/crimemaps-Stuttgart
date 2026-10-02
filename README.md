@@ -112,7 +112,7 @@ Live visit collection is not connected. No country totals are shown until the se
 
 ## The 14 city projects
 
-Berlin is the default starting point. These are the city repository destinations. Some repositories are private or still being prepared and may not open without access; a repository link does not mean its new map is already online.
+Berlin is the default starting point. All 14 city repositories are public; the links below open their code and project pages. The new maps are still awaiting publication.
 
 | City | Repository |
 | --- | --- |
