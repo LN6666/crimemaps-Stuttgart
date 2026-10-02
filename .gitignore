@@ -17,6 +17,7 @@ runs/
 experiments/
 node_modules/
 web/dist/
+web/dist-fixture/
 web/public/safety/
 web/test-results/
 web/playwright-report/

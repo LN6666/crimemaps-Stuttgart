@@ -32,6 +32,62 @@ export function installMobileLayout(root: HTMLElement, options: {
   let labels = options.labels;
   let expanded = false;
   let frame = 0;
+  const toolbar = root.querySelector<HTMLElement>(".toolbar");
+  const settings = document.createElement("details");
+  settings.className = "mobile-view-settings";
+  const settingsSummary = document.createElement("summary");
+  const currentView = document.createElement("span");
+  const settingsIcon = document.createElement("span");
+  settingsIcon.className = "mobile-disclosure-icon";
+  settingsIcon.textContent = "⌄";
+  settingsIcon.setAttribute("aria-hidden", "true");
+  settingsSummary.append(currentView, settingsIcon);
+  if (toolbar) { toolbar.before(settings); settings.append(settingsSummary, toolbar); }
+  function updateViewSummary() {
+    const value = (id: string) => root.querySelector<HTMLSelectElement>(`#${id}`)?.selectedOptions[0]?.textContent?.trim() || "";
+    currentView.textContent = [value("city-switch"), [value("month"), value("year")].filter(Boolean).join(" ")].filter(Boolean).join(" · ");
+  }
+  const toolbarObserver = new MutationObserver(updateViewSummary);
+  if (toolbar) toolbarObserver.observe(toolbar, { childList: true, subtree: true, characterData: true });
+  toolbar?.addEventListener("change", updateViewSummary, { signal });
+  window.addEventListener("pageshow", updateViewSummary, { signal });
+  settings.addEventListener("toggle", () => notifyLayout(), { signal });
+  settings.addEventListener("keydown", event => {
+    if (event.key === "Escape" && mobile.matches && settings.open) { event.preventDefault(); settings.open = false; settingsSummary.focus(); }
+  }, { signal });
+  const notesHost = document.createElement("div");
+  notesHost.className = "mobile-map-notes";
+  const movedNotes = [...root.querySelectorAll<HTMLElement>(".map-wrap > .map-note, .map-wrap > .basemap-language-note")].map(note => {
+    const marker = document.createComment("map note position"); note.before(marker); return { note, marker };
+  });
+  function adaptHeader() {
+    settings.open = !mobile.matches;
+    basemapSettings.open = !mobile.matches || (basemapError ? !basemapError.hidden : false);
+    if (mobile.matches) { detailsRegion.prepend(notesHost); for (const { note } of movedNotes) notesHost.append(note); }
+    else { for (const { note, marker } of movedNotes) marker.after(note); notesHost.remove(); }
+    updateViewSummary();
+  }
+  const basemapPicker = root.querySelector<HTMLElement>(".basemap-picker");
+  const basemapSettings = document.createElement("details");
+  basemapSettings.className = "mobile-basemap-settings";
+  const basemapSummary = document.createElement("summary");
+  basemapSummary.textContent = basemapPicker?.querySelector("label")?.firstChild?.textContent?.trim() || options.labels.map;
+  const basemapContent = document.createElement("div");
+  basemapContent.className = "mobile-basemap-content";
+  if (basemapPicker) { basemapContent.append(...basemapPicker.childNodes); basemapSettings.append(basemapSummary, basemapContent); basemapPicker.append(basemapSettings); }
+  const basemapError = root.querySelector<HTMLElement>("#basemap-error");
+  const errorObserver = new MutationObserver(() => { if (basemapError && !basemapError.hidden) basemapSettings.open = true; });
+  if (basemapError) errorObserver.observe(basemapError, { attributes: true, attributeFilter: ["hidden"] });
+  const initialAttribution = new WeakSet<Element>();
+  const attributionObserver = new MutationObserver(() => {
+    if (!mobile.matches) return;
+    for (const control of mapRegion.querySelectorAll(".maplibregl-ctrl-attrib.maplibregl-compact")) {
+      if (initialAttribution.has(control)) continue;
+      initialAttribution.add(control);
+      if (control.classList.contains("maplibregl-compact-show")) control.querySelector<HTMLElement>("summary")?.click();
+    }
+  });
+  attributionObserver.observe(mapRegion, { childList: true, subtree: true, attributes: true, attributeFilter: ["class"] });
   const content = document.createElement("div");
   content.className = "mobile-filter-content";
   content.id = "mobile-filter-content";
@@ -71,7 +127,8 @@ export function installMobileLayout(root: HTMLElement, options: {
   function render() {
     content.hidden = mobile.matches && !expanded;
     toggle.setAttribute("aria-expanded", String(expanded));
-    toggle.textContent = expanded ? labels.hideFilters : labels.showFilters;
+    toggle.textContent = labels.filters;
+    toggle.setAttribute("aria-label", expanded ? labels.hideFilters : labels.showFilters);
     nav.setAttribute("aria-label", labels.map);
     controlsRegion.setAttribute("aria-label", labels.filters);
     namedMapRegion.setAttribute("aria-label", labels.map);
@@ -99,10 +156,11 @@ export function installMobileLayout(root: HTMLElement, options: {
     link.addEventListener("click", event => {
       event.preventDefault();
       if (mobile.matches) setExpanded(false);
+      if (mobile.matches) settings.open = false;
       goTo(region);
     }, { signal });
   }
-  mobile.addEventListener("change", () => { setExpanded(false); }, { signal });
+  mobile.addEventListener("change", () => { adaptHeader(); setExpanded(false); }, { signal });
 
   // visualViewport shrinks with the on-screen keyboard. Scale changes are pinch zoom,
   // so preserve user zoom rather than resizing the map from a magnified viewport.
@@ -125,6 +183,7 @@ export function installMobileLayout(root: HTMLElement, options: {
   });
   if (statusLabel) statusObserver.observe(statusLabel);
   statusObserver.observe(nav);
+  adaptHeader();
   viewportChanged();
   render();
   return {
@@ -133,10 +192,17 @@ export function installMobileLayout(root: HTMLElement, options: {
     destroy() {
       abort.abort();
       statusObserver.disconnect();
+      toolbarObserver.disconnect();
+      errorObserver.disconnect();
+      attributionObserver.disconnect();
       cancelAnimationFrame(frame);
       content.hidden = false;
       content.replaceWith(...content.childNodes);
       nav.remove(); skip.remove();
+      if (toolbar) settings.replaceWith(toolbar);
+      if (basemapPicker) basemapSettings.replaceWith(...basemapContent.childNodes);
+      for (const { note, marker } of movedNotes) { marker.after(note); marker.remove(); }
+      notesHost.remove();
       root.classList.remove("mobile-layout-ready");
       root.style.removeProperty("--mobile-visible-height");
       document.documentElement.style.removeProperty("--mobile-visible-height");

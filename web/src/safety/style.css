@@ -396,7 +396,7 @@ dialog article button {
 dialog p {
   font-size: 13px;
 }
-details {
+.details details, dialog details {
   margin: 15px 0;
   padding: 10px;
   background: #f3f6f3;
@@ -456,6 +456,10 @@ button { white-space: normal; }
 .maplibregl-ctrl-attrib { overflow-wrap: anywhere; }
 .maplibregl-ctrl-attrib-button { min-height: 24px; }
 .mobile-navigation { display: none; }
+.mobile-view-settings { display: contents; }
+.mobile-view-settings > summary { display: none; }
+.mobile-basemap-settings > summary { display: none; }
+.mobile-map-notes { display: none; }
 .skip-to-map {
   position: fixed;
   top: -200px;
@@ -498,9 +502,30 @@ dialog .close { position: sticky; top: 0; background: white; z-index: 1; }
 }
 
 @media (max-width: 760px), (max-width: 1000px) and (max-height: 500px) {
+  :root { font-size: 100%; line-height: 1.55; }
   #app { height: auto; min-height: 100vh; min-height: 100dvh; }
-  header { display: block; }
-  h1 { font-size: 18px; line-height: 1.4; }
+  header { display: block; min-height: 0; padding: max(8px, env(safe-area-inset-top)) 12px 10px; }
+  .brand { font-size: .75rem; letter-spacing: .12em; }
+  .review-badge { font-size: .875rem; margin-left: 8px; padding: 0 6px; }
+  h1 { font-size: 1.25rem; line-height: 1.3; margin: 4px 0 0; }
+  h2 { font-size: 1.25rem; line-height: 1.35; }
+  h3, h4 { font-size: 1rem; line-height: 1.4; }
+  label, summary, .hint, small, .eyebrow, .ends, .scene-legend, .scene-list li, .road-caution,
+  .report .road-focus, .external-maps a, .external-maps button,
+  .report small, #stats p, .map-label, #basemap-error, #basemap-error button { font-size: .875rem; line-height: 1.5; }
+  button, input, select, textarea, #coverage, #stats button, #search-results button, .report p, dialog p { font-size: 1rem; line-height: 1.5; }
+  .toggle { font-size: 1rem; line-height: 1.5; }
+  .mobile-view-settings { display: block; margin: 10px 0 0; padding: 0; min-width: 0; border: 0; background: none; }
+  .mobile-view-settings > summary {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    padding: 8px 12px; min-height: 44px; cursor: pointer; list-style: none;
+    border: 1px solid #cbd8d0; border-radius: 8px; background: #f6f8f5;
+    font-size: 1rem; font-weight: 600; line-height: 1.5;
+  }
+  .mobile-view-settings > summary::-webkit-details-marker { display: none; }
+  .mobile-view-settings > summary > span:first-child { min-width: 0; overflow-wrap: normal; }
+  .mobile-disclosure-icon { flex: 0 0 auto; }
+  .mobile-view-settings[open] .mobile-disclosure-icon { transform: rotate(180deg); }
   .toolbar {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -509,11 +534,11 @@ dialog .close { position: sticky; top: 0; background: white; z-index: 1; }
   .toolbar .city-switch { grid-column: 1 / -1; }
   .city-switch select, select { min-width: 0; width: 100%; }
   /* 16px inputs avoid automatic focus zoom in mobile Safari. Browser zoom stays available. */
-  input[type="text"], input:not([type]), textarea, select { font-size: 16px; min-height: 44px; }
+  input[type="text"], input:not([type]), textarea, select { font-size: 1rem; min-height: 44px; }
   main { display: flex; flex-direction: column; flex: 0 0 auto; }
   .mobile-layout-ready .mobile-navigation {
     display: grid;
-    grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-columns: minmax(0, .9fr) minmax(0, .7fr) minmax(0, 1.4fr);
     gap: 6px;
     position: sticky;
     top: 0;
@@ -534,6 +559,7 @@ dialog .close { position: sticky; top: 0; background: white; z-index: 1; }
     overflow-wrap: anywhere;
   }
   .mobile-navigation button { padding: 8px 4px; }
+  .mobile-navigation button, .mobile-navigation a { font-size: 1rem; line-height: 1.5; }
   .controls { height: auto; flex-shrink: 0; padding: 0; border-right: 0; }
   .mobile-filter-content {
     max-height: 65vh;
@@ -551,12 +577,25 @@ dialog .close { position: sticky; top: 0; background: white; z-index: 1; }
   }
   .map-label { left: 12px; top: 12px; padding: 6px 10px; max-width: calc(100% - 24px); }
   .basemap-picker { left: 12px; top: calc(18px + var(--map-label-height, 44px)); max-width: calc(100% - 24px); width: min(220px, calc(100% - 24px)); }
-  .map-note { left: 12px; bottom: 55px; font-size: 11px; }
+  .basemap-picker { width: auto; max-width: calc(100% - 72px); padding: 0; }
+  .mobile-basemap-settings { margin: 0; padding: 0; border: 0; background: none; }
+  .mobile-basemap-settings > summary { display: block; min-height: 44px; padding: 10px 12px; font-size: .875rem; line-height: 24px; cursor: pointer; }
+  .mobile-basemap-content { padding: 4px 12px 12px; }
+  .mobile-basemap-content label { font-size: .875rem; }
+  .maplibregl-ctrl-attrib { font-size: .75rem; }
+  .maplibregl-ctrl-attrib.maplibregl-compact { min-width: 44px; min-height: 44px; border-radius: 22px; }
+  .maplibregl-ctrl-attrib.maplibregl-compact:not(.maplibregl-compact-show) { width: 44px; padding: 0; }
+  .maplibregl-ctrl-attrib-button { width: 44px; height: 44px; min-height: 44px; background-repeat: no-repeat; background-position: center; }
+  .maplibregl-ctrl-scale { font-size: .75rem; }
+  .mobile-map-notes { display: block; padding-bottom: 16px; margin-bottom: 16px; border-bottom: 1px solid #d8e1da; }
+  .mobile-map-notes .map-note, .mobile-map-notes .basemap-language-note {
+    position: static; max-width: none; margin: 0 0 8px; padding: 0;
+    font-size: .875rem; line-height: 1.5; background: none; pointer-events: auto;
+  }
   .maplibregl-ctrl-bottom-left { bottom: 30px; }
   .maplibregl-ctrl-bottom-right { padding-bottom: env(safe-area-inset-bottom); }
   .details { position: static; width: 100%; max-height: none; overflow: visible; padding: 16px; scroll-margin-top: 6px; }
   .details { padding-bottom: max(24px, env(safe-area-inset-bottom)); }
-  h2 { font-size: 18px; }
   dialog { width: calc(100% - 24px); padding: 16px; border-radius: 10px; }
   .feedback-panel textarea { min-height: 120px; scroll-margin-block: 70px; }
 }

@@ -1,3 +1,4 @@
+import {catalogSummary,loadCatalogTranslations} from "./catalog-translations";
 import {DynamicTranslations} from "./dynamic-translations";
 import {mountAnnouncementMethods} from "./methods";
 import {mountUncertaintyPanel} from "./uncertainty-panel";
@@ -5,7 +6,7 @@ import {mountFeedbackPanel} from "./feedback";
 import {mountAnalytics} from "./analytics";
 import "./analytics.css";
 import {installMobileLayout} from "./mobile-layout";
-import {t,locale,localeCode,number,date,html,cityName,poiName} from "./i18n";
+import {t,locale,localeCode,number,date,html,cityName,poiName,sourceContextName,languageURL} from "./i18n";
 import * as maplibregl from "maplibre-gl";
 import workerUrl from "maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url";
 maplibregl.setWorkerUrl(workerUrl);
@@ -27,6 +28,9 @@ import {
   sceneRoleLabel,
   SCENE_CLICK_LAYERS,
   styledPois,
+  unplacedStages,
+  sourcePoiReferences,
+  SOURCE_POI_CLICK_LAYERS,
   renderPois,
   poiGeometryLabel,
   transitGeometryLabel,
@@ -107,7 +111,7 @@ const sceneColor: maplibregl.ExpressionSpecification = [
 
 const app = document.querySelector<HTMLDivElement>("#app")!;
 app.innerHTML = `<header><div><span class="brand">${currentCity === "berlin" ? "CRIMEMAPSBERLIN" : "CRIMEMAPS.DE"}</span><span id="review-badge" class="review-badge" hidden>${html(t("app.preview"))}</span><h1>${html(t("app.heading",{city:localizedCity}))}</h1></div><div class="toolbar"><label>${html(t("nav.language"))}<select id="language" aria-label="${html(t("nav.language"))}"><option value="de">Deutsch</option><option value="en">English</option><option value="zh">中文</option></select></label><label class="city-switch">${html(t("nav.city"))}<select id="city-switch" aria-label="${html(t("nav.city"))}"></select></label><label>${html(t("nav.year"))}<select id="year" aria-label="${html(t("nav.year"))}"></select></label><label>${html(t("nav.month"))}<select id="month" aria-label="${html(t("nav.month"))}"></select></label><button id="overview">${html(t("nav.overview"))}</button><button id="sources">${html(t("nav.sources"))}</button></div></header>
-<main><aside class="controls"><p class="eyebrow">${cityView.latin} / PUBLIC REPORTS</p><h2>${html(t("app.tagline"))}</h2><p id="coverage">${html(t("map.loadingData"))}</p><nav id="external-maps" class="external-maps" aria-label="${html(t("external.aria"))}"></nav><label class="search-label">${html(t("search.label",{city:localizedCity}))}<input id="search" placeholder="${html(t("search.placeholder",{},cityView.latin))}" autocomplete="off"></label><div id="search-results"></div><label>${html(t("filter.category"))}<select id="category"><option value="all">${html(t("filter.allReports"))}</option></select></label><div class="rule"></div><h3>${html(t("legend.hex"))}</h3><div class="ramp"></div><div class="ends"><span>${html(t("legend.low"))}</span><span>${html(t("legend.high"))}</span></div><p id="resolution"></p><label class="toggle"><input id="hex-toggle" type="checkbox" checked> ${html(t("legend.showHex"))}</label><label class="toggle"><input id="candidate-roads-toggle" type="checkbox" checked> ${html(t("legend.showRoads"))}</label><p class="hint"><span class="road-swatch" aria-hidden="true"></span>${html(t("legend.roadNote"))}</p><div class="scene-legend" aria-label="${html(t("legend.scenesAria"))}"><span><i class="scene-swatch incident"></i>${html(t("legend.incident"))}</span><span><i class="scene-swatch discovery"></i>${html(t("legend.discovery"))}</span><span><i class="scene-swatch operation"></i>${html(t("legend.operation"))}</span><span><i class="scene-swatch context"></i>${html(t("legend.context"))}</span><span><i class="route-swatch"></i>${html(t("legend.transit"))}</span></div><h3>${html(t("legend.pois"))}</h3><div id="poi-filters"></div><label class="toggle"><input id="highlight" type="checkbox" checked> ${html(t("legend.highlight"))}</label><p class="hint">${html(t("legend.highlightNote"))}</p><div class="rule"></div><button id="kbo">${html(t("kbo.button"))}</button><p class="hint">${html(t("kbo.separate"))}</p><p id="freshness" class="hint"></p></aside>
+<main><aside class="controls"><p class="eyebrow">${html(localizedCity)} / ${html(t("app.publicReports"))}</p><h2>${html(t("app.tagline"))}</h2><p id="coverage">${html(t("map.loadingData"))}</p><nav id="external-maps" class="external-maps" aria-label="${html(t("external.aria"))}"></nav><label class="search-label">${html(t("search.label",{city:localizedCity}))}<input id="search" placeholder="${html(t("search.placeholder",{},cityView.latin))}" autocomplete="off"></label><div id="search-results"></div><label>${html(t("filter.category"))}<select id="category"><option value="all">${html(t("filter.allReports"))}</option></select></label><div class="rule"></div><h3>${html(t("legend.hex"))}</h3><div class="ramp"></div><div class="ends"><span>${html(t("legend.low"))}</span><span>${html(t("legend.high"))}</span></div><p id="resolution"></p><label class="toggle"><input id="hex-toggle" type="checkbox" checked> ${html(t("legend.showHex"))}</label><label class="toggle"><input id="candidate-roads-toggle" type="checkbox" checked> ${html(t("legend.showRoads"))}</label><p class="hint"><span class="road-swatch" aria-hidden="true"></span>${html(t("legend.roadNote"))}</p><div class="scene-legend" aria-label="${html(t("legend.scenesAria"))}"><span><i class="scene-swatch incident"></i>${html(t("legend.incident"))}</span><span><i class="scene-swatch discovery"></i>${html(t("legend.discovery"))}</span><span><i class="scene-swatch operation"></i>${html(t("legend.operation"))}</span><span><i class="scene-swatch context"></i>${html(t("legend.context"))}</span><span><i class="route-swatch"></i>${html(t("legend.transit"))}</span></div><h3>${html(t("legend.pois"))}</h3><div id="poi-filters"></div><label class="toggle"><input id="highlight" type="checkbox" checked> ${html(t("legend.highlight"))}</label><p class="hint">${html(t("legend.highlightNote"))}</p><div class="rule"></div><button id="kbo">${html(t("kbo.button"))}</button><p class="hint">${html(t("kbo.separate"))}</p><p id="freshness" class="hint"></p></aside>
 <section class="map-wrap"><div id="map" aria-label="${html(t("map.aria",{city:localizedCity}))}"></div><div class="map-label"><span class="dot"></span><span id="map-status" role="status" aria-live="polite">${html(t("map.preparing"))}</span></div><div class="basemap-picker"><label>${html(t("map.basemap"))}<select id="basemap" aria-label="${html(t("map.basemap"))}" disabled><option value="vector">${html(t("basemap.vector"))}</option><option value="street">${html(t("basemap.street"))}</option><option value="aerial">${html(t("basemap.aerial"))}</option><option value="local">${html(t("basemap.local"))}</option></select></label><div id="basemap-error" role="status" hidden><span></span><button id="basemap-fallback">${html(t("basemap.fallback"))}</button></div></div><div class="map-note">${html(t("map.poiNote"))}</div><p class="hint basemap-language-note">${html(t("basemap.languageNote"))}</p></section>
 <aside class="details"><div id="stats"></div><div id="methods-panel"></div><div id="selection"><h2>${html(t("selection.prompt"))}</h2><p>${html(t("selection.intro"))}</p></div><div id="uncertainty-panel"></div><div id="feedback-panel"></div><div id="analytics-panel"></div></aside></main>
 <dialog id="drawer"><button id="close-dialog" class="close">${html(t("action.close"))}</button><div id="drawer-content"></div></dialog>`;
@@ -165,8 +169,8 @@ text("button", t("nav.otherCities"), el("external-maps")).onclick =
   externalMapsDialog;
 const dynamicText=new DynamicTranslations();
 const methodsPanel=mountAnnouncementMethods(el("methods-panel"),{t,locale,categoryLabel});
-const uncertaintyPanel=mountUncertaintyPanel(el("uncertainty-panel"),{locale,city:currentCity,onSelect:(id)=>{const p=openDialog(t("report.scenes"));listReports(p,[id]);}});
-const feedbackPanel=mountFeedbackPanel(el("feedback-panel"),{locale,city:currentCity});
+const uncertaintyPanel=mountUncertaintyPanel(el("uncertainty-panel"),{locale,city:currentCity,translate:t,onSelect:(id)=>{const p=openDialog(t("report.scenes"));listReports(p,[id]);}});
+const feedbackPanel=mountFeedbackPanel(el("feedback-panel"),{locale,city:currentCity,translate:t});
 const analyticsPanel=mountAnalytics(el("analytics-panel"),{language:locale,city:currentCity,translate:(key,params)=>t(key,params)});
 let data: Bundle;
 let map: maplibregl.Map;
@@ -176,6 +180,7 @@ let activeHex: FC = empty();
 let activePois: FC = empty();
 let activeRoads: FC = empty();
 let activeScenes: FC = empty();
+let activeSourcePois:FC=empty();
 let loaded = false;
 let expired = false;
 let freshnessTimer: ReturnType<typeof setInterval>;
@@ -183,6 +188,7 @@ let selected:
   | { type: "hex" | "poi"; id: string }
   | { type: "road"; ids: string[] }
   | { type: "scene"; ids: string[] }
+  | { type: "source_poi"; ids: string[] }
   | null = null;
 let pendingSearchPoiId: string | null = null;
 let client: DataClient;
@@ -192,7 +198,7 @@ let viewportRequest = new AbortController();
 let viewportTimer: ReturnType<typeof setTimeout>;
 let currentMode = "";
 let searchIndex:
-  | { id: string; name: string; kind: string; center: [number, number] }[]
+  | { id: string; name: string; kind: string; scope_category?:string; center: [number, number] }[]
   | undefined;
 let searchLoading: Promise<void> | undefined;
 const searchRequest=new AbortController();
@@ -234,7 +240,7 @@ function focusRoad(event: PoliceEvent) {
 }
 function listReports(parent: HTMLElement, ids: string[]) {
   const wanted = new Set(ids);
-  for (const e of data.events.filter((e) => wanted.has(e.id))) {
+  for (const e of dynamicText.displayRows(data.events).filter((e) => wanted.has(e.id))) {
     const card = document.createElement("article");
     card.className = "report";
     parent.append(card);
@@ -255,14 +261,14 @@ function listReports(parent: HTMLElement, ids: string[]) {
     }
     if (e.source_scope_verdict === "uncertain")
       text("small", t("report.cityUncertain"), card);
-    text("h4", dynamicText.text(e.title), card);
-    if(dynamicText.missing)text("small",t("report.translationMissing"),card);
+    text("h4", e.title, card);
+    if(dynamicText.missingFor(e))text("small",t("report.translationMissing"),card);
     for (const tag of e.reviewed_tags ?? []) {
       const label = reviewedTagLabels[tag.tag];
       if (label)
         text("small", t("report.aiLead",{label,quote:tag.evidence_quote}), card);
     }
-    text("p", dynamicText.text(e.location_label), card);
+    text("p", e.location_label, card);
     if (e.location_scope && locationScopeLabels[e.location_scope])
       text("small", locationScopeLabels[e.location_scope], card);
     if (e.scene_locations?.length) {
@@ -274,7 +280,7 @@ function listReports(parent: HTMLElement, ids: string[]) {
       for (const scene of e.scene_locations) {
         const item = document.createElement("li");
         scenes.append(item);
-        text("strong", `${sceneRoleLabel(scene.role)} · ${dynamicText.text(scene.label)}`, item);
+        text("strong", `${sceneRoleLabel(scene.role)} · ${scene.label}`, item);
         text(
           "small",
           `${scene.case_relation ? `${sceneRelationLabels[scene.case_relation]} · ` : ""}${precisionLabels[scene.location_precision] ?? t("precision.unknown")} · ${scene.primary_for_count ? t("report.primary") : t("report.displayOnly")}${scene.candidate_road_geometry ? ` · ${t("report.roadPending")}` : ""}`,
@@ -311,11 +317,11 @@ function listReports(parent: HTMLElement, ids: string[]) {
           scene.details,
           ...(scene.incidents ?? []).map((incident) => incident.details),
         ].filter((value): value is string => Boolean(value));
-        for (const detail of [...new Set(details)]) text("small", dynamicText.text(detail), item);
+        for (const detail of [...new Set(details)]) text("small", detail, item);
 
         if (scene.poi_contexts?.length) {
           const kinds = [...new Set(scene.poi_contexts.map((context) =>
-            poiName(context.kind,data.catalog.poi_types[context.kind]?.label ?? context.kind)))];
+            sourceContextName(context.kind)))];
           text(
             "small",
             t("report.poiContext",{types:kinds.join(", ")}),
@@ -328,6 +334,16 @@ function listReports(parent: HTMLElement, ids: string[]) {
         t("report.countPolicy"),
         card,
       );
+    }
+    const otherStages=unplacedStages(e);
+    if(otherStages.length){
+      text("small",t("report.otherStages"),card).className="scene-heading";
+      const list=document.createElement("ul");list.className="scene-list unplaced-stages";card.append(list);
+      for(const stage of otherStages){const item=document.createElement("li");item.dataset.incidentId=stage.incident_id;list.append(item);
+       text("strong",t(stage.formal_location_ids?.length?"report.stagePlaceUnmatched":"report.stagePlaceUnknown"),item);
+       if(stage.event_time?.display)text("small",t("report.originalTime",{times:stage.event_time.display}),item);
+       if(stage.details)text("small",stage.details,item);
+      }
     }
     if (e.geocode_method === "multiple_official_scenes")
       text(
@@ -379,7 +395,7 @@ function listReports(parent: HTMLElement, ids: string[]) {
     if (e.poi_mentions.length)
       text(
         "small",
-        t("report.sourcePlaceTypes",{types:e.poi_mentions.map((k)=>poiName(k,data.catalog.poi_types[k]?.label??k)).join(", ")}),
+        t("report.sourcePlaceTypes",{types:e.poi_mentions.map(sourceContextName).join(", ")}),
         card,
       );
   }
@@ -392,6 +408,11 @@ function showSelection() {
     text("h2", t("selection.prompt"), panel);
     text("p", t("selection.intro"), panel);
     return;
+  }
+  if(selected.type==="source_poi"){
+    const available=new Set(sceneEventIds(activeSourcePois.features));selected.ids=selected.ids.filter(id=>available.has(id));
+    if(!selected.ids.length){selected=null;text("p",t("selection.objectEmpty"),panel);return;}
+    text("h2",t("selection.announcementCount",{count:number(selected.ids.length)}),panel);text("p",t("rules.context_limitation"),panel);listReports(panel,selected.ids);return;
   }
   if (selected.type === "scene") {
     const available = new Set(sceneEventIds(activeScenes.features));
@@ -508,7 +529,7 @@ function showSelection() {
     for (const s of sources) {
       text("p", `${s.country} · ${s.place} · ${s.evidence_type}`, details);
       link(details, s.publisher, s.url);
-      text("p", s.summary, details);
+      text("p", catalogSummary(s), details);
     }
   }
   listReports(panel, p.event_ids ?? []);
@@ -567,10 +588,12 @@ function refresh() {
   );
   activeRoads = candidateRoads(rows);
   activeScenes = sceneFeatures(rows);
+  activeSourcePois=sourcePoiReferences(rows,month?.source_poi_reference_features);
   setSource("hex", activeHex);
   setSource("pois", renderPois(activePois));
   setSource("candidate-roads", activeRoads);
   setSource("scenes", activeScenes);
+  setSource("source-poi-references",activeSourcePois);
   setRoadVisibility();
   map.setLayoutProperty(
     "hex-fill",
@@ -627,7 +650,7 @@ function refresh() {
     };
   }
   methodsPanel.update(rows,{month:monthKey(),city:currentCity,generation:manifest.generation,category:el<HTMLSelectElement>("category").value,metadata:manifest.metadata,countReferenceIds:[...countable]});
-  uncertaintyPanel.update(rows);
+  uncertaintyPanel.update(dynamicText.displayRows(rows));
   showSelection();
 }
 function openDialog(title: string) {
@@ -648,7 +671,7 @@ function externalMapsDialog() {
   const nav = text("nav", "", p);
   nav.className = "city-map-links";
   nav.setAttribute("aria-label", t("external.polizeikarteAria"));
-  for (const item of externalMaps) link(nav, `${item.city} ↗`, item.url);
+  for (const item of externalMaps) link(nav, `${cityName(item.id,item.city)} ↗`, item.url);
   link(p, t("external.allCities"), externalMapsDirectory);
 }
 function sourcesDialog() {
@@ -683,7 +706,7 @@ function sourcesDialog() {
     p.append(card);
     text("h3", `${s.country} / ${s.place}`, card);
     text("small", t("sources.verified",{type:s.evidence_type,date:date(s.verified_on)}), card);
-    text("p", s.summary, card);
+    text("p", catalogSummary(s), card);
     link(card, s.publisher + " ↗", s.url);
   }
   text(
@@ -723,6 +746,7 @@ async function loadMonth() {
   const key = monthKey();
   data.events = [];
   data.months = {};
+  dynamicText.clear();
   refresh();
   el("map-status").textContent = t("map.loadingMonth");
   try {
@@ -730,7 +754,7 @@ async function loadMonth() {
     if (signal.aborted || key !== monthKey()) return;
     data.events = value?.events ?? [];
     data.months = value ? { [key]: value } : {};
-    try {await dynamicText.load(data.events,manifest,client,key,locale,signal);}catch(error){if(signal.aborted)throw error;dynamicText.clear();dynamicText.missing=data.events.length;}
+    try {await dynamicText.load(data.events,manifest,client,key,locale,signal,currentCity);}catch(error){if(signal.aborted)throw error;dynamicText.clear();dynamicText.missing=data.events.length;}
     if(signal.aborted||key!==monthKey())return;
     pendingSearchPoiId = null;
     selected = null;
@@ -740,7 +764,9 @@ async function loadMonth() {
       data.events = [];
       data.months = {};
       refresh();
-      el("map-status").textContent = String(error);
+      console.error(error);
+      el("map-status").textContent = t("map.loadFailed");
+      el("stats").replaceChildren();text("p",t("map.loadFailed"),el("stats"));
     }
   }
 }
@@ -777,7 +803,7 @@ async function loadViewport() {
     refresh();
     if (!detail) el("map-status").textContent += ` · ${t("map.zoomForPlaces")}`;
   } catch (error) {
-    if (!signal.aborted) el("map-status").textContent = String(error);
+    if (!signal.aborted) { console.error(error);el("map-status").textContent = t("map.loadFailed"); }
   }
 }
 async function start() {
@@ -801,6 +827,7 @@ async function start() {
       months: {},
       pois: empty(),
     };
+    await loadCatalogTranslations(data.catalog.sources);
     const months = Object.keys(manifest.months).sort();
     const latest = requestedMonth(window.location.search, months, months.at(-1) ?? data.retrieved_at.slice(0, 7));
     const years = [
@@ -815,7 +842,8 @@ async function start() {
     el<HTMLSelectElement>("month").value = latest.slice(5, 7);
     for (const c of manifest.categories)
       el<HTMLSelectElement>("category").add(new Option(categoryLabel(c), c));
-    for (const [key, value] of Object.entries(data.catalog.poi_types)) {
+    const filters=manifest.poi_scope_groups?Object.fromEntries(Object.entries(manifest.poi_scope_groups).map(([key,value])=>[key,{label:t(value.label_key),color:data.catalog.poi_types[value.kinds[0]]?.color??"#64748b"}])):data.catalog.poi_types;
+    for (const [key, value] of Object.entries(filters)) {
       const label = document.createElement("label");
       label.className = "toggle";
       const input = document.createElement("input");
@@ -841,7 +869,7 @@ async function start() {
       center: cityView.center,
       zoom: 12.1,
       attributionControl: false,
-      locale: {"NavigationControl.ZoomIn":t("aria.zoomIn"),"NavigationControl.ZoomOut":t("aria.zoomOut"),"NavigationControl.ResetBearing":t("aria.resetBearing"),"Map.Title":t("map.aria",{city:localizedCity})},
+      locale: {"NavigationControl.ZoomIn":t("aria.zoomIn"),"NavigationControl.ZoomOut":t("aria.zoomOut"),"NavigationControl.ResetBearing":t("aria.resetBearing"),"Map.Title":t("map.aria",{city:localizedCity}),"AttributionControl.ToggleAttribution":t("aria.toggleAttribution")},
       maxTileCacheSize: 64,
       cancelPendingTileRequestsWhileZooming: true,
       refreshExpiredTiles: false,
@@ -864,7 +892,7 @@ async function start() {
     );
     map.addControl(
       new maplibregl.AttributionControl({
-        compact: false,
+        // MapLibre collapses attribution automatically on narrow maps.
         customAttribution:
           `<a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">${html(t("map.attributionPlaces"))}: © OpenStreetMap contributors</a> / <a href="https://www.geofabrik.de/" target="_blank" rel="noopener noreferrer">Geofabrik</a> · <a href="${cityView.policeUrl}" target="_blank" rel="noopener noreferrer">${html(t("report.source"))}: ${cityView.policeName}</a>`,
       }),
@@ -872,6 +900,7 @@ async function start() {
     map.once("load", async () => {
       for (const id of [
         "roads",
+        "source-poi-references",
         "hex",
         "pois",
         "kbo",
@@ -1076,6 +1105,9 @@ async function start() {
           "circle-stroke-width": 2,
         },
       });
+      map.addLayer({id:"source-poi-reference-fill",type:"fill",source:"source-poi-references",filter:["==",["geometry-type"],"Polygon"],paint:{"fill-color":"#677785","fill-opacity":0.12}});
+      map.addLayer({id:"source-poi-reference-line",type:"line",source:"source-poi-references",filter:["!=",["geometry-type"],"Point"],paint:{"line-color":"#677785","line-width":2,"line-opacity":0.7}});
+      map.addLayer({id:"source-poi-reference-point",type:"circle",source:"source-poi-references",filter:["==",["geometry-type"],"Point"],paint:{"circle-radius":5,"circle-color":"#677785","circle-opacity":0.5,"circle-stroke-width":1,"circle-stroke-color":"#ffffff"}});
       setSource("kbo", {
         type: "FeatureCollection",
         features: data.zones.features,
@@ -1090,23 +1122,26 @@ async function start() {
         el("basemap-error").hidden = true;
         el<HTMLSelectElement>("basemap").value = id;
         basemaps.select(id);
+        document.querySelector(".basemap-language-note")!.textContent=t(id==="vector"?"basemap.vectorLanguageNote":"basemap.languageNote");
       };
       el<HTMLSelectElement>("basemap").disabled = false;
       el("basemap").onchange = () =>
         changeBasemap(el<HTMLSelectElement>("basemap").value as BasemapId);
       el("basemap-fallback").onclick = () => changeBasemap("local");
-      changeBasemap("street");
+      changeBasemap("vector");
       loaded = true;
       await Promise.all([loadMonth(), loadViewport()]);
       if(new URLSearchParams(location.search).has("diagnostics")) {
         const output=document.createElement("output"); output.id="vector-label-proof";output.hidden=true;app.append(output);
-        map.on("idle",()=>{if(map.getLayer("basemap-vector-place-labels"))output.textContent=JSON.stringify(map.queryRenderedFeatures({layers:["basemap-vector-place-labels"]}).map(f=>({name:f.properties.name,localized:f.properties[`name_${locale}`]??null,display:f.properties[`name_${locale}`]??f.properties.name})));});
+        const detailProof=document.createElement("output");detailProof.id="map-detail-proof";detailProof.hidden=true;app.append(detailProof);
+        map.on("idle",()=>{detailProof.textContent=JSON.stringify({cache:client.cacheStats,translations:{matched:dynamicText.matched,missing:dynamicText.missing},circles:map.queryRenderedFeatures({layers:["poi-circle"]}).map(f=>({id:f.properties.id,name:f.properties.name,radius:f.properties.display_radius_m})),month:monthKey()});if(map.getLayer("basemap-vector-place-labels"))output.textContent=JSON.stringify(map.queryRenderedFeatures({layers:["basemap-vector-place-labels"]}).map(f=>({name:f.properties.name,localized:f.properties[`name_${locale}`]??null,display:f.properties[`name_${locale}`]??f.properties.name})));});
       }
       map.on("click", (e) => {
         if (expired) return;
         const fs = map.queryRenderedFeatures(e.point, {
           layers: [
             ...SCENE_CLICK_LAYERS,
+            ...SOURCE_POI_CLICK_LAYERS,
             "candidate-roads-hit", "poi-fill", "poi-line", "poi-point", "poi-circle", "hex-fill",
           ],
         });
@@ -1130,6 +1165,8 @@ async function start() {
           showSelection();
           return;
         }
+        const references=fs.filter(f=>SOURCE_POI_CLICK_LAYERS.includes(f.layer.id));
+        if(references.length){selected={type:"source_poi",ids:sceneEventIds(references)};showSelection();return;}
         const f = fs[0];
         selected = {
           type: f.layer.id.startsWith("poi") ? "poi" : "hex",
@@ -1155,7 +1192,7 @@ async function start() {
       if (loaded) setRoadVisibility();
     };
     for (const id of ["year", "month"])
-      el(id).onchange = () => void loadMonth();
+      el(id).onchange = () => {const url=new URL(location.href);url.searchParams.set("month",monthKey());history.replaceState(null,"",url.href);void loadMonth();};
     el("overview").onclick = () =>
       map.flyTo({ center: cityView.center, zoom: 10.5 });
     el("sources").onclick = sourcesDialog;
@@ -1218,7 +1255,7 @@ async function start() {
           );
           b.onclick = () => {
             for (const input of document.querySelectorAll<HTMLInputElement>("#poi-filters input")) {
-              if (input.value === f.kind) input.checked = true;
+              if (input.value === (f.scope_category??f.kind) || (!f.scope_category&&manifest.poi_scope_groups?.[input.value]?.kinds.includes(f.kind))) input.checked = true;
             }
             pendingSearchPoiId = f.id;
             selected = { type: "poi", id: f.id };
@@ -1230,11 +1267,12 @@ async function start() {
       }, 160);
     };
   } catch (error) {
-    el("coverage").textContent = String(error);
+    console.error(error);
+    el("coverage").textContent = t("map.loadFailed");
     el("map-status").textContent = t("map.notReady");
   }
 }
-window.addEventListener("pageshow",(event)=>{if(event.persisted){map?.resize();void loadViewport();}});
+window.addEventListener("pageshow",(event)=>{el<HTMLSelectElement>("language").value=locale;if(event.persisted&&loaded){map.resize();void loadMonth();void loadViewport();}});
 window.addEventListener("pagehide", (event) => {
   if(event.persisted){monthRequest.abort();viewportRequest.abort();clearTimeout(viewportTimer);return;}
   searchRequest.abort();

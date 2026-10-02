@@ -32,7 +32,7 @@
   "filter.allReports": "Alle Polizeimeldungen",
   "filter.allCategories": "Alle Kategorien",
   "filter.allMonths": "Alle Monate",
-  "filter.publicationMonth": "Veröffentlichungsmonat",
+  "filter.publicationMonth": "Monat",
   "filter.scope": "Räumlicher Bezug",
   "filter.allScopes": "Alle räumlichen Bezüge",
   "filter.municipal": "Meldungen mit Bezug zu dieser Stadt",
@@ -106,7 +106,7 @@
   "report.translationMissing": "Keine geprüfte deutsche Lesehilfe verfügbar. Der Originaltext wird angezeigt.",
   "report.summary": "Geprüfte deutsche Zusammenfassung",
   "report.summaryNote": "Die Zusammenfassung dient als Lesehilfe. Sie ersetzt die amtliche Meldung nicht.",
-  "report.publishedMonth": "{month} (Veröffentlichungsmonat)",
+  "report.publishedMonth": "Kartenmonat: {month}",
   "report.published": "Veröffentlicht",
   "report.sourceUnavailable": "Der Originaltext ist derzeit nicht verfügbar. Der zuvor erfasste Eintrag bleibt erhalten.",
   "report.sourceRefreshFailed": "Die Quelle konnte nicht aktualisiert werden. Der zuvor erfasste Eintrag wird angezeigt.",
@@ -528,7 +528,7 @@
   "unknown.counts": "Gezählt werden Meldungen mit ungenauen Ortsangaben. Eine Meldung kann in mehreren Gruppen erscheinen. Die Zahlen bestimmen keine genauen Ereignisorte und bewerten keine Sicherheit.",
   "unknown.empty": "Für diesen Monat und diese Kategorie gibt es in dieser Gruppe keine Meldungen.",
   "unknown.originalTime": "Zeitangabe aus der Quelle: {time}",
-  "unknown.timeUnknown": "Der Ereigniszeitpunkt ist unbekannt.",
+  "unknown.timeUnknown": "Diese Ortsübersicht enthält keine Ereigniszeit.",
   "unknown.published": "Veröffentlichungsmonat: {month}. Das ist nicht das Ereignisdatum.",
   "unknown.monthUnknown": "Veröffentlichungsmonat nicht verfügbar.",
   "unknown.source": "Quelle lesen",
@@ -747,5 +747,10 @@
   "report.otherStages": "Weitere Ereignisse und spätere Maßnahmen in dieser Meldung",
   "report.stagePlaceUnknown": "Die Quelle nennt keinen Ort",
   "report.stagePlaceUnmatched": "Für diesen Ort liegt keine geeignete Kartendarstellung vor",
-  "map.loadFailed": "Die ausgewählten Kartendaten konnten nicht geladen werden. Wähle einen anderen Monat oder lade die Seite erneut."
+  "map.loadFailed": "Die ausgewählten Kartendaten konnten nicht geladen werden. Wähle einen anderen Monat oder lade die Seite erneut.",
+  "sourceContext.generic": "Weitere Angaben in der Meldung",
+  "feedback.details": "So wird dein Hinweis verarbeitet",
+  "feedback.policyLink": "Vollständige Datenschutzhinweise",
+  "unknown.summaryDate": "Ereignisdatum in der Zusammenfassung der Meldung: {date}.",
+  "aria.toggleAttribution": "Quellenhinweise der Karte ein- oder ausblenden"
 }
