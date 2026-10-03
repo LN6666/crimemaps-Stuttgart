@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "city": "stuttgart",
+  "locale": "de",
+  "layout": "wide",
+  "presentation": "world_map_and_rank",
+  "path": "docs/assets/visitors-by-country.de.svg",
+  "sha256": "de6f3aa363e0ad3f96b4fa1824b0b7cde114356fd9e2ac65ccb19b3bb6bced30",
+  "source_kind": "not_connected",
+  "collection_status": "not_connected",
+  "metric": null,
+  "source": null,
+  "generated_at_utc": null
+}
