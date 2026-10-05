@@ -10,6 +10,7 @@ import "./github-feedback.css";
 import {mountContentTagLauncher} from "./content-tag-launcher";
 import {CONTENT_TAG_COPY} from "./content-tag-copy";
 import {loadSavedStatistics} from "./statistics-loader";
+import {mountDatedTagStatistics, type DatedTagCatalogue, type DatedTagBindings} from "./dated-tag-statistics";
 import "./content-tag-launcher.css";
 import {installMobileLayout} from "./mobile-layout";
 import {t,locale,localeCode,number,date,html,cityName,poiName,sourceContextName,languageURL} from "./i18n";
@@ -226,6 +227,32 @@ async function loadStatistics() {
     try { statisticsPanel.setSummaries([], statisticsNames, currentCity); } catch { /* cleared before validation */ }
   }
 }
+
+// Count-only dated statistics are bound independently from cached model prose.
+const datedBuildBinding = import.meta.env.VITE_DATED_STATISTICS_BINDING
+  ? JSON.parse(import.meta.env.VITE_DATED_STATISTICS_BINDING) as {city:string;generation:string;records:number;source_versions:DatedTagBindings}
+  : undefined;
+const datedStatisticsPanel = datedBuildBinding ? mountDatedTagStatistics(el("methods-panel"), {locale}) : undefined;
+let datedStatisticsRequest = new AbortController();
+let datedStatisticsReady = false;
+async function loadDatedStatistics() {
+  if (!datedStatisticsPanel || !datedBuildBinding || datedStatisticsReady) return;
+  if (datedStatisticsRequest.signal.aborted) datedStatisticsRequest = new AbortController();
+  const signal = datedStatisticsRequest.signal;
+  try {
+    const records = Object.values(manifest.months).reduce((sum, month) => sum + month.count, 0);
+    if (datedBuildBinding.city !== currentCity || datedBuildBinding.generation !== manifest.generation || datedBuildBinding.records !== records)
+      throw Error("Dated statistics belong to another map snapshot");
+    const catalogue = await fetchDataJSON<DatedTagCatalogue>(assetPath("/statistics/dated-tag-statistics.json"), signal);
+    if (signal.aborted) return;
+    if (!datedStatisticsPanel.setCatalogue(catalogue, datedBuildBinding.source_versions)) return;
+    datedStatisticsPanel.setScope(currentCity);
+    datedStatisticsReady = true;
+  } catch {
+    if (!signal.aborted) datedStatisticsPanel.invalidate();
+  }
+}
+
 let basemaps: Basemaps;
 let activeHex: FC = empty();
 let activePois: FC = empty();
@@ -933,7 +960,7 @@ async function start() {
     ))
       el("review-badge").hidden = false;
     client = new DataClient(manifest, cityView.dataRoot);
-    void loadStatistics();
+    void loadStatistics();void loadDatedStatistics();
     data = {
       ...manifest,
       schema_version: 1,
@@ -1401,9 +1428,9 @@ async function start() {
     el("map-status").textContent = t("map.notReady");
   }
 }
-window.addEventListener("pageshow",(event)=>{el<HTMLSelectElement>("language").value=locale;if(event.persisted&&loaded){map.resize();void loadMonth();void loadViewport();void loadStatistics();}});
+window.addEventListener("pageshow",(event)=>{el<HTMLSelectElement>("language").value=locale;if(event.persisted&&loaded){map.resize();void loadMonth();void loadViewport();void loadStatistics();void loadDatedStatistics();}});
 window.addEventListener("pagehide", (event) => {
-  statisticsRequest.abort();
+  statisticsRequest.abort();datedStatisticsRequest.abort();
   if(event.persisted){monthRequest.abort();viewportRequest.abort();clearTimeout(viewportTimer);return;}
   searchRequest.abort();
   monthRequest.abort();
@@ -1414,7 +1441,7 @@ window.addEventListener("pagehide", (event) => {
   uncertaintyPanel.destroy();
   githubFooter.destroy();
   analyticsPanel.destroy();
-  statisticsPanel?.destroy();
+  statisticsPanel?.destroy();datedStatisticsPanel?.destroy();
   mobileLayout.destroy();
   basemaps?.dispose();
   map?.remove();
