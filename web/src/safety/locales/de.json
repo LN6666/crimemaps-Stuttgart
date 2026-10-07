@@ -1,4 +1,13 @@
 {
+  "community.view": "Dieses Gebiet ansehen: {name}",
+  "community.toggle": "Ortsteilgrenzen und Namen anzeigen",
+  "community.loading": "Ortsteilgrenzen werden als eigenständige geografische Referenzebene geladen.",
+  "community.available": "Gliederungsebene: {level}. Schwarze Umrisse und Namen dienen der Orientierung, nicht als Ortsteil-Meldungsstatistik. Namen erscheinen je nach Zoom und verfügbarem Platz.",
+  "community.unavailable": "Für diese Stadt sind derzeit keine geprüften Ortsteilgrenzen verfügbar. Fehlende Gebiete werden nicht ergänzt oder geraten.",
+  "community.source": "Quelle der Ortsteilgrenzen ↗",
+  "community.level": "Gliederungsebene: {level} · admin_level: {admin}",
+  "community.referenceOnly": "Gebietsumrisse und Namen dienen nur der geografischen Orientierung. Beschriftungspunkte sind keine Meldungs- oder Ereignispositionen. Hier werden keine Straftatenzahlen oder Sicherheitsbewertungen für Ortsteile angegeben.",
+  "community.snapshot": "Quellenstand: {snapshot}",
   "app.title": "CrimeMaps · Polizeimeldungen aus {city}",
   "app.heading": "{city} · Polizeimeldungen und Orte",
   "app.tagline": "Polizeimeldungen auf der Karte",

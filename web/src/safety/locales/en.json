@@ -1,4 +1,13 @@
 {
+  "community.view": "View this community: {name}",
+  "community.toggle": "Show community boundaries and names",
+  "community.loading": "Loading community boundaries as a separate geographic reference layer.",
+  "community.available": "Division level: {level}. Black outlines and names are geographic references, not community announcement statistics. Names appear as zoom and spacing allow.",
+  "community.unavailable": "Reviewed community boundaries are not currently available for this city. No communities are invented or drawn to fill the gap.",
+  "community.source": "Community boundary source ↗",
+  "community.level": "Division level: {level} · admin_level: {admin}",
+  "community.referenceOnly": "Community outlines and names are geographic references only. Label points are not announcement or event positions. This panel provides no community offence totals or safety score.",
+  "community.snapshot": "Source snapshot: {snapshot}",
   "app.title": "CrimeMaps · {city} police reports",
   "app.heading": "{city} · Police reports and places",
   "app.tagline": "Police reports on the map",

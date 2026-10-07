@@ -1,4 +1,13 @@
 {
+  "community.view": "查看此社区：{name}",
+  "community.toggle": "显示社区边界与名称",
+  "community.loading": "社区边界正在加载；这是独立的地理参照图层。",
+  "community.available": "行政区划层级：{level}。黑线与名称仅作地理参照，不表示社区警情统计。名称按缩放与空间显示。",
+  "community.unavailable": "当前城市尚无可用的已核验社区边界；不补画或猜测社区。",
+  "community.source": "社区边界来源 ↗",
+  "community.level": "区划层级：{level} · admin_level：{admin}",
+  "community.referenceOnly": "社区轮廓与地名标签仅用于地理参照。标签代表点不是公告或事件位置；本面板不提供社区案件数或安全评分。",
+  "community.snapshot": "来源快照：{snapshot}",
   "app.title": "CrimeMaps · {city}警方公告地图",
   "app.heading": "{city} · 警方公告与城市场所",
   "app.tagline": "警方公告与地图",
